@@ -81,13 +81,13 @@ prédiction après soumission.
 
 ## Niveau 0.5 — API sur la machine distante
 
-L'adresse utilisée précédemment pour le TP est `20.86.80.79`, avec le dossier
-`/home/ubuntu/ts`. Confirmer cette adresse auprès du formateur si la VM a changé.
+La VM du TP est accessible via `ubuntu@40.66.48.24`. Le dossier réservé
+au projet est `/home/ubuntu/ts`.
 
 ```bash
-ssh ubuntu@20.86.80.79 'mkdir -p /home/ubuntu/ts'
-scp main.py train_model.py houses.csv requirements.txt ubuntu@20.86.80.79:/home/ubuntu/ts/
-ssh ubuntu@20.86.80.79
+ssh ubuntu@40.66.48.24 'mkdir -p /home/ubuntu/ts'
+scp main.py train_model.py houses.csv requirements.txt ubuntu@40.66.48.24:/home/ubuntu/ts/
+ssh ubuntu@40.66.48.24
 cd /home/ubuntu/ts
 python3 -m venv .venv
 source .venv/bin/activate
@@ -102,7 +102,7 @@ Le port choisi doit être accessible dans les règles réseau de la VM.
 Depuis votre machine, puis depuis celle d'un collègue :
 
 ```bash
-python test_requests.py --url http://20.86.80.79:8002
+python test_requests.py --url http://40.66.48.24:8002
 ```
 
 Arrêter ce serveur avec Ctrl+C avant d'utiliser le même port avec Docker.
@@ -128,13 +128,14 @@ docker rm house-price-api
 
 ## Niveau 2 — Docker sur la VM
 
-Après avoir arrêté le serveur du niveau 0.5, copier les fichiers de construction :
+Après avoir arrêté le serveur du niveau 0.5, récupérer le projet sur la VM :
 
 ```bash
-scp Dockerfile .dockerignore main.py train_model.py houses.csv requirements.txt \
-  ubuntu@20.86.80.79:/home/ubuntu/ts/
-ssh ubuntu@20.86.80.79
+ssh ubuntu@40.66.48.24
+mkdir -p /home/ubuntu/ts
 cd /home/ubuntu/ts
+git clone https://github.com/totosoubi/MLprod1.git
+cd MLprod1
 sudo docker build -t ts-house-price-api .
 sudo docker run -d --restart unless-stopped \
   --name ts-house-price-api -p 8002:8000 ts-house-price-api
@@ -142,8 +143,10 @@ sudo docker ps --filter name=ts-house-price-api
 sudo docker logs ts-house-price-api
 ```
 
-Si un ancien conteneur du projet porte déjà ce nom, l'arrêter et le supprimer
-avant de lancer sa nouvelle version :
+Pour une mise à jour, utiliser `git pull --ff-only` dans le dépôt existant
+au lieu de le cloner à nouveau, puis reconstruire l'image. Si un ancien
+conteneur du projet porte déjà ce nom, l'arrêter et le supprimer avant de
+lancer sa nouvelle version :
 
 ```bash
 sudo docker stop ts-house-price-api
@@ -153,10 +156,10 @@ sudo docker rm ts-house-price-api
 Depuis votre machine puis celle d'un collègue, vérifier :
 
 ```bash
-python test_requests.py --url http://20.86.80.79:8002
+python test_requests.py --url http://40.66.48.24:8002
 ```
 
-Documentation distante : http://20.86.80.79:8002/docs
+Documentation distante : http://40.66.48.24:8002/docs
 
 ## Validation effectuée le 21 octobre 2026
 
@@ -166,7 +169,11 @@ Documentation distante : http://20.86.80.79:8002/docs
 - Requêtes HTTP GET et POST réussies sur le serveur local.
 - Image Docker construite et conteneur testé via un port publié : prédictions
   GET/POST réussies, `/docs` en HTTP 200, valeurs invalides en HTTP 422.
-- Connexions SSH et HTTP à la VM `20.86.80.79` expirées : le déploiement
-  distant reste à revalider dès que la VM est accessible.
+- Conteneur distant `ts-house-price-api` actif sur la VM `40.66.48.24`,
+  confirmé par la sortie `docker ps` fournie depuis la VM :
+  `0.0.0.0:8002->8000/tcp` et `[::]:8002->8000/tcp`.
+- Accès externe à `http://40.66.48.24:8002` vérifié depuis le Mac :
+  prédictions GET et POST identiques (environ `289962.49`), `/docs` et
+  `/openapi.json` en HTTP 200, jardin invalide et champs manquants en HTTP 422.
 - L'accès depuis la machine d'un collègue reste à confirmer pour valider
   entièrement le TP.
