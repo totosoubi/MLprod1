@@ -1,12 +1,20 @@
+from pathlib import Path
+
+import joblib
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+
+
+BASE_DIR = Path(__file__).resolve().parent
+
+
 def build_model():
-    import pandas as pd 
-    from sklearn.linear_model import LinearRegression
-    import joblib
-    df = pd.read_csv('houses.csv')
-    X = df[['size', 'nb_rooms', 'garden']]
-    y = df['price']
-    model = LinearRegression()
-    model.fit(X, y)
-    joblib.dump(model, "regression.joblib")
-    
-build_model()
+    df = pd.read_csv(BASE_DIR / "houses.csv")
+    features = df[["size", "nb_rooms", "garden"]]
+    model = LinearRegression().fit(features, df["price"])
+    joblib.dump(model, BASE_DIR / "regression.joblib")
+    return model
+
+
+if __name__ == "__main__":
+    build_model()

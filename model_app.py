@@ -1,9 +1,11 @@
+from pathlib import Path
+
 import joblib
 import pandas as pd
 import streamlit as st
 
 
-MODEL_PATH = "regression.joblib"
+MODEL_PATH = Path(__file__).resolve().parent / "regression.joblib"
 
 st.set_page_config(page_title="Prediction maison", layout="centered")
 
@@ -38,8 +40,8 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-st.title("Prix estime")
-st.caption("Prediction du prix d'une maison")
+st.title("Prix estimé")
+st.caption("Prédiction du prix d'une maison")
 
 with st.form("prediction_form"):
     col_size, col_rooms = st.columns(2)
@@ -51,13 +53,13 @@ with st.form("prediction_form"):
         nb_rooms = st.number_input("Chambres", min_value=0, value=3, step=1)
 
     garden = st.number_input("Jardin", min_value=0, max_value=1, value=1, step=1)
-    submitted = st.form_submit_button("Predire")
-
-features = pd.DataFrame(
-    [{"size": size, "nb_rooms": nb_rooms, "garden": garden}]
-)
-
-y_pred = model.predict(features)[0]
+    submitted = st.form_submit_button("Prédire")
 
 if submitted:
-    st.write({"y_pred": float(y_pred)})
+    features = pd.DataFrame(
+        [{"size": size, "nb_rooms": nb_rooms, "garden": garden}]
+    )
+    y_pred = float(model.predict(features)[0])
+    formatted_price = f"{y_pred:,.0f} EUR".replace(",", " ")
+    st.metric("Prix prédit", formatted_price)
+    st.write({"y_pred": y_pred})

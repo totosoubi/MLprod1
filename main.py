@@ -2,7 +2,7 @@ from pathlib import Path
 
 import joblib
 import pandas as pd
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from pydantic import BaseModel, Field
 
 
@@ -14,7 +14,7 @@ model = joblib.load(MODEL_PATH)
 
 
 class HouseFeatures(BaseModel):
-    size: float = Field(..., ge=0)
+    size: float = Field(..., ge=0, allow_inf_nan=False)
     nb_rooms: int = Field(..., ge=0)
     garden: int = Field(..., ge=0, le=1)
 
@@ -38,7 +38,11 @@ def read_root():
 
 
 @app.get("/predict")
-def predict_get(size: float = 120.0, nb_rooms: int = 3, garden: int = 1):
+def predict_get(
+    size: float = Query(120.0, ge=0, allow_inf_nan=False),
+    nb_rooms: int = Query(3, ge=0),
+    garden: int = Query(1, ge=0, le=1),
+):
     features = HouseFeatures(size=size, nb_rooms=nb_rooms, garden=garden)
     return {"y_pred": predict_price(features)}
 

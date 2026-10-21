@@ -1,6 +1,7 @@
-pandas
-scikit-learn
-joblib
-streamlit
-fastapi
-uvicorn[standard]
+pandas==3.0.6
+scikit-learn==1.9.1
+joblib==1.6.0
+streamlit==1.66.0
+fastapi==0.156.4
+uvicorn[standard]==0.54.0
+requests==2.34.2
